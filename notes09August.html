@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Sample Title 
+        </title>
+        <style>
+          button{
+            color:white;
+            background-color: rgb(97, 97, 167);
+            border-radius: 2px;
+            margin:0px 5px;
+          }
+          body{
+            background-color: beige;
+          }
+          fieldset{
+            background-color: rgb(239, 231, 176);
+          }
+          p{
+            color: rgb(118, 116, 116);
+          }
+          textarea{
+            width: 300px;
+            height: 50px;
+          }
+            
+        </style>
+    </head>
+    <body>
+        <div id="root">
+
+        </div>
+
+        <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+        <script crossorigin src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
+
+        <script type="text/babel">
+           const rootHandle = document.getElementById('root')
+           
+           // Your code goes here 
+           const {useState,useEffect} = React 
+
+
+          function SearchNoteForm(props){
+
+            const {handleSearch,clearSearches} = props
+
+            const [searchText,setSearchText] = useState("")
+
+            function handleSubmit(e){
+              e.preventDefault()
+              handleSearch(searchText)
+            }
+            function handleClear(){
+              setSearchText("")
+              clearSearches()
+            }
+
+            return (
+                    <form onSubmit={handleSubmit}>
+                      <input type="text" value={searchText} onChange={(e)=>{setSearchText(e.target.value)}}/>
+                      <input type="submit" value="Search"/>
+                      <input type="button" value="Clear All" onClick={handleClear}/><br/>
+                    </form>
+            )
+          }
+
+           
+          function NoteItem(props){ //TODO
+            
+            const {id,body,createdAt,tags,removeNote,updateNote,updateFiltered,removeFiltered,updateSearched,removeSearched} = props
+
+            const [enableUpdate,setEnableUpdate] = useState(false)
+            const [update,setUpdate] = useState(body)
+            
+            function handleRemove(e){
+              const conf = confirm("Are you sure? ")
+              if(conf){
+              removeNote(id)
+              removeFiltered(id)
+              removeSearched(id)
+              }
+            }
+
+            function handleEdit(){
+              setEnableUpdate(true)
+            }
+
+            function handleUpdate(){
+              updateNote(id,update)
+              updateFiltered(id,update)
+              updateSearched(id,update)
+              setEnableUpdate(false)
+            }
+
+            return (
+                      
+                        <li>
+                            
+                                
+
+                                <fieldset style={{borderRadius:"5px",margin:"5px",boxShadow:"0px 2px 10px"}}>
+                                  {
+                                    enableUpdate ? 
+                                      <div>
+                                        <input type="text" value={update} onChange={(e)=>{setUpdate(e.target.value)}}/>
+                                        <button onClick={handleUpdate}>Update</button> 
+                                        <button onClick={()=>{setEnableUpdate(false)}}>Cancel</button>
+                                      </div>
+                                    :
+                                      <div>
+                                        {body}<br/>
+                                        {tags.map((ele,i)=><span style={{backgroundColor:"orange",margin:"0px 2px",borderRadius:"5px",fontSize:"12px",padding:"2px"}} key={i}> {ele} </span>)}
+                                        <p>Created on {new Date(createdAt).toLocaleString()}</p>
+                                        <button onClick={handleEdit}>Edit Note</button>
+                                        <button onClick={handleRemove}>Delete Note</button>
+                                      </div>
+                                  }
+                                </fieldset>
+                                
+                              
+                          </li>
+                       
+                      
+                   ) 
+          }
+
+          function NoteList(props){ //TODO
+              
+            const {data,removeNote,updateNote,filtered,removeFiltered,updateFiltered,searchResults,updateSearched,removeSearched} = props
+
+            
+
+            return (
+
+                  data.length==0 ?  
+                  <h1>No notes added</h1> 
+                  : 
+                  (
+                    <div>
+                      { 
+                        <div>
+                          <h1>Search results - ({searchResults.length}) found</h1>
+                          {searchResults.map((ele,i)=>{
+                              return <NoteItem key={ele.id} {...ele}  updateFiltered={updateFiltered} removeFiltered={removeFiltered} removeNote={removeNote} updateNote={updateNote} updateSearched={updateSearched} removeSearched={removeSearched}/>
+                            })}
+                        </div>
+                      }
+                      {filtered.length ? (<h1>Listing Notes - {filtered.length}</h1>) : (<h1>Listing Notes - {data.length}</h1>)}
+                      <ul>
+                        { filtered.length ?  
+                          
+                          filtered.map((ele,i)=>{
+                            return <NoteItem key={ele.id} {...ele}  updateFiltered={updateFiltered} removeFiltered={removeFiltered} removeNote={removeNote} updateNote={updateNote} updateSearched={updateSearched} removeSearched={removeSearched}/>
+                          })
+
+                          :
+
+                          data.map((ele,i)=>{
+                            return <NoteItem key={ele.id} {...ele} removeNote={removeNote} updateNote={updateNote} updateFiltered={updateFiltered} removeFiltered={removeFiltered}  updateSearched={updateSearched} removeSearched={removeSearched}/>
+                          })
+                        }
+                      </ul>
+                   </div>
+                  )
+            )
+          }
+
+          function NoteForm(props){  //TODO
+              
+             const [input,setInput] = useState("")
+             const [tag,setTag] = useState("")
+
+
+             const {addNote} = props
+
+             function handleSubmit(e){
+                e.preventDefault()
+
+                const note = {
+                  id:Number(new Date()),
+                  body:input,
+                  createdAt:new Date(),
+                  tags:tag.toLowerCase().split(",")
+                }
+                
+                addNote(note)
+
+                setInput("")
+                setTag("")
+                
+             }
+
+             return (   
+                          <form onSubmit={handleSubmit}>
+                            <label>Enter note</label><br/>
+                            <textarea value={input} onChange={(e)=>{setInput(e.target.value)}}></textarea><br/>
+                            <label>Enter tags</label><br/>
+                            <input type="text" value={tag} onChange={(e)=>{setTag(e.target.value)}}/>
+                            <input type="submit" value="Create"/>
+
+                            <hr/>
+                          </form>
+                    )
+          }
+
+          function App(props){   //TODO
+            
+            const [notes,setNotes] = useState([])
+            const [filtered,setFiltered] = useState([])
+            const [uniqeTags,setUniqueTags] =  useState([])
+            const [searchResults,setSearchResults] = useState([])
+
+            function clearSearches() {
+              setSearchResults([])
+            }
+
+            function updateSearched(index,newValue){
+              let result=searchResults.map(ele=>{
+                  if(ele.id==index){
+                    return {...ele,body:newValue}  
+                  }
+                  else{
+                    return {...ele}
+                  }
+                })
+                setSearchResults(result)
+            }
+            function removeSearched(id){
+              const result = searchResults.filter(ele=>{
+                return ele.id!==id
+              })
+              setSearchResults(result)
+            }
+
+            function handleSearch(text){
+              if(text){
+              const result = notes.filter(ele=>{
+                return ele.body.toLowerCase().includes(text.toLowerCase())
+              })
+              setSearchResults(result)
+              }
+              else{
+                setSearchResults([])
+              }
+            }
+
+            function removeFiltered(id){
+              const result = filtered.filter(ele=>{
+                return ele.id!==id
+              })
+              setFiltered(result)
+              
+            }
+
+            function updateFiltered(index,newValue){
+              let result=filtered.map(ele=>{
+                  if(ele.id==index){
+                    return {...ele,body:newValue}  
+                  }
+                  else{
+                    return {...ele}
+                  }
+                })
+                setFiltered(result)
+            }
+
+            function displayByTag(e){
+              const key= e.target.innerText 
+              if(key!="all"){
+                  setFiltered(notes.filter(ele=>{
+                    return ele.tags.includes(key)
+                  }))
+                } 
+              else {
+                setFiltered(notes)
+              }
+
+            }
+
+            useEffect(()=>{console.log("filtered"+JSON.stringify(filtered))},[filtered])
+
+            function addNote(noteObj){
+                setNotes([noteObj,...notes])
+            }
+
+            function removeNote(id){
+                const result = notes.filter(ele=>{
+                  return ele.id!==id
+                })
+                setNotes(result)
+            }
+            
+            function updateNote(index,newValue){
+                let result=notes.map(ele=>{
+                  if(ele.id==index){
+                    return {...ele,body:newValue}  
+                  }
+                  else{
+                    return {...ele}
+                  }
+                })
+                setNotes(result)
+            }
+
+            useEffect(()=>{          //Initialisation of notes from local storage
+              const data=localStorage.getItem("notes")
+              if(data){    
+                setNotes(JSON.parse(data))
+              }
+            },[])
+
+            useEffect(()=>{   //writing to local storage
+                localStorage.setItem("notes",JSON.stringify(notes))
+
+                let result=notes.reduce((prev,current)=>{
+                  prev=prev.concat(current.tags)
+                  return prev
+                },[])
+
+                let removeDuplicates = [...new Set(result)]
+
+                setUniqueTags(["all"].concat(removeDuplicates))
+
+            },[notes])
+
+            
+            console.log(notes)
+            
+            return (  
+                        <div style={{width:"400px",margin:"auto"}}>
+                          <h1>Notes App</h1>
+                          <SearchNoteForm handleSearch={handleSearch} clearSearches={clearSearches}/>
+                          <h2>Filter by Tag</h2>
+                          {
+                            uniqeTags.map((ele,i)=>{    
+                            return <button key={i} onClick={displayByTag} 
+                            style={{color:"white",backgroundColor:"Green",border:"solid 2px black",borderRadius:"10px",margin:"2px"}}> {ele} </button>
+                          })
+                          }
+                          <br/><br/>
+                          <NoteForm addNote={addNote}/> 
+                          <NoteList data={notes} removeNote={removeNote} updateNote={updateNote} filtered={filtered} updateFiltered={updateFiltered} removeFiltered={removeFiltered} searchResults={searchResults} updateSearched={updateSearched}
+                          removeSearched={removeSearched}/>
+                        </div>
+                   )
+          }
+
+           ReactDOM.render(<App/>,rootHandle)
+        </script>
+    </body>
+</html>
